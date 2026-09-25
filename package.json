@@ -20,7 +20,13 @@
     "test:sanitizer": "tsx tests/ai_sanitizer.test.ts",
     "test:ai": "tsx tests/ai_generator.test.ts",
     "test:phase3": "tsx tests/phase3_exit.test.ts",
-    "test:all": "tsx tests/crypto.test.ts && tsx tests/smoke.test.ts && tsx tests/gsc_jwt.test.ts && tsx tests/classifier.test.ts && tsx tests/ai_sanitizer.test.ts && tsx tests/ai_generator.test.ts && tsx tests/phase1_exit.test.ts && tsx tests/phase2_exit.test.ts && tsx tests/phase3_exit.test.ts"
+    "test:sandbox": "tsx tests/sandbox.test.ts",
+    "test:deploy": "tsx tests/git_deploy.test.ts",
+    "test:quota": "tsx tests/billing_quota.test.ts",
+    "test:phase4": "tsx tests/phase4_exit.test.ts",
+    "test:phase5": "tsx tests/phase5_exit.test.ts",
+    "test:digest": "tsx tests/phase5_exit.test.ts",
+    "test:all": "tsx tests/crypto.test.ts && tsx tests/smoke.test.ts && tsx tests/gsc_jwt.test.ts && tsx tests/classifier.test.ts && tsx tests/ai_sanitizer.test.ts && tsx tests/ai_generator.test.ts && tsx tests/sandbox.test.ts && tsx tests/git_deploy.test.ts && tsx tests/billing_quota.test.ts && tsx tests/phase1_exit.test.ts && tsx tests/phase2_exit.test.ts && tsx tests/phase3_exit.test.ts && tsx tests/phase4_exit.test.ts && tsx tests/phase5_exit.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",

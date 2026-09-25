@@ -12,6 +12,7 @@ import {
   ChevronUp,
   ShieldCheck,
   RefreshCw,
+  GitPullRequest,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,15 +30,19 @@ interface StagedItem {
 interface StagedActionsDrawerProps {
   projectId?: string;
   refreshTrigger?: number;
+  onDeploySuccess?: () => void;
 }
 
 export function StagedActionsDrawer({
   projectId,
   refreshTrigger = 0,
+  onDeploySuccess,
 }: StagedActionsDrawerProps) {
   const [items, setItems] = useState<StagedItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [deployingId, setDeployingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deployFeedback, setDeployFeedback] = useState<string | null>(null);
 
   const loadStagedActions = useCallback(async () => {
     if (!projectId) return;
@@ -71,6 +76,36 @@ export function StagedActionsDrawer({
       }
     } catch (err) {
       console.error("Failed to update status:", err);
+    }
+  };
+
+  const handleDeploy = async (enrichmentId: string) => {
+    if (!projectId) return;
+    setDeployingId(enrichmentId);
+    setDeployFeedback(null);
+    try {
+      const res = await fetch(`/api/v1/projects/${projectId}/deploy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrichmentId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Deployment failed");
+      }
+
+      setDeployFeedback(
+        `✓ PR #${data.deployment.prNumber} opened on branch '${data.deployment.branchName}'!`
+      );
+      await loadStagedActions();
+      onDeploySuccess?.();
+    } catch (err) {
+      setDeployFeedback(
+        `✕ Deployment error: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+    } finally {
+      setDeployingId(null);
     }
   };
 
@@ -171,6 +206,25 @@ export function StagedActionsDrawer({
                         <span>Reject</span>
                       </button>
                     </>
+                  )}
+
+                  {item.status === "APPROVED" && (
+                    <button
+                      onClick={() => handleDeploy(item.id)}
+                      disabled={deployingId === item.id}
+                      className="px-2.5 py-1 rounded bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold text-[11px] font-mono flex items-center gap-1.5 hover:brightness-110 shadow-glow-cyan disabled:opacity-50"
+                      title="Run build sandbox & deploy PR"
+                    >
+                      <GitPullRequest className={cn("w-3 h-3", deployingId === item.id && "animate-spin")} />
+                      <span>{deployingId === item.id ? "Validating & Deploying..." : "Deploy PR"}</span>
+                    </button>
+                  )}
+
+                  {item.status === "COMMITTED" && (
+                    <span className="px-2.5 py-1 rounded bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 text-[11px] font-mono flex items-center gap-1 font-bold">
+                      <GitPullRequest className="w-3 h-3" />
+                      <span>PR #{item.payload?.gitPrNumber || "Deployed"}</span>
+                    </span>
                   )}
 
                   <button

@@ -16,6 +16,13 @@ import {
 } from "@/components/dashboard/StrikingDistanceTable";
 import { StageEnrichmentModal } from "@/components/dashboard/StageEnrichmentModal";
 import { StagedActionsDrawer } from "@/components/dashboard/StagedActionsDrawer";
+import { DeploymentAuditFeed } from "@/components/dashboard/DeploymentAuditFeed";
+import {
+  AnalyticsTrendChart,
+  SnapshotItem,
+} from "@/components/dashboard/AnalyticsTrendChart";
+import { ExecutiveDigestModal } from "@/components/dashboard/ExecutiveDigestModal";
+import { SitemapPingModal } from "@/components/dashboard/SitemapPingModal";
 import {
   Crosshair,
   TrendingUp,
@@ -27,6 +34,8 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
+  Mail,
+  Send,
 } from "lucide-react";
 
 interface SnapshotData {
@@ -48,29 +57,42 @@ export default function DashboardPage() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [queries, setQueries] = useState<RankedQueryItem[]>([]);
   const [snapshot, setSnapshot] = useState<SnapshotData | null>(null);
+  const [snapshots, setSnapshots] = useState<SnapshotItem[]>([]);
   const [syncBanner, setSyncBanner] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  // Phase 3: AI Enrichment Staging State
+  // Phase 3 & 4: AI Staging & Deployment Audit State
   const [isEnrichmentModalOpen, setIsEnrichmentModalOpen] = useState(false);
   const [selectedQueryForEnrichment, setSelectedQueryForEnrichment] = useState<RankedQueryItem | null>(null);
   const [stagedRefreshCounter, setStagedRefreshCounter] = useState(0);
+  const [auditRefreshCounter, setAuditRefreshCounter] = useState(0);
+
+  // Phase 5: Executive Digest & Sitemap Modal State
+  const [isDigestModalOpen, setIsDigestModalOpen] = useState(false);
+  const [isSitemapModalOpen, setIsSitemapModalOpen] = useState(false);
 
   const loadProjectData = useCallback(async (projectId: string) => {
     setIsLoadingData(true);
     try {
-      const res = await fetch(
-        `/api/v1/projects/${projectId}/queries?strikingDistanceOnly=true&limit=100`
-      );
-      if (res.ok) {
-        const data = await res.json();
+      const [queriesRes, snapshotsRes] = await Promise.all([
+        fetch(`/api/v1/projects/${projectId}/queries?strikingDistanceOnly=true&limit=100`),
+        fetch(`/api/v1/projects/${projectId}/snapshots`),
+      ]);
+
+      if (queriesRes.ok) {
+        const data = await queriesRes.json();
         setQueries(data.queries || []);
         setSnapshot(data.snapshot || null);
       }
+
+      if (snapshotsRes.ok) {
+        const snapData = await snapshotsRes.json();
+        setSnapshots(snapData.snapshots || []);
+      }
     } catch (err) {
-      console.error("Failed to load project queries:", err);
+      console.error("Failed to load project queries and snapshots:", err);
     } finally {
       setIsLoadingData(false);
     }
@@ -82,6 +104,7 @@ export default function DashboardPage() {
     } else {
       setQueries([]);
       setSnapshot(null);
+      setSnapshots([]);
     }
   }, [currentProject, loadProjectData]);
 
@@ -108,6 +131,7 @@ export default function DashboardPage() {
       });
 
       await loadProjectData(currentProject.id);
+      setAuditRefreshCounter((c) => c + 1);
     } catch (err) {
       setSyncBanner({
         type: "error",
@@ -192,18 +216,38 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center flex-wrap gap-2.5">
               {currentProject && (
-                <button
-                  onClick={handleTriggerSync}
-                  disabled={isSyncing}
-                  className="px-3.5 py-2 rounded-lg text-xs font-mono font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 hover:brightness-110 shadow-glow-cyan flex items-center gap-2 disabled:opacity-40"
-                >
-                  <RefreshCw
-                    className={`w-3.5 h-3.5 text-slate-950 ${isSyncing ? "animate-spin" : ""}`}
-                  />
-                  <span>{isSyncing ? "Syncing Radar..." : "Sync Search Console"}</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => setIsDigestModalOpen(true)}
+                    className="px-3 py-2 rounded-lg text-xs font-mono font-medium border border-cyan-500/40 bg-cyan-950/30 text-cyan-300 hover:bg-cyan-900/40 transition-colors flex items-center gap-1.5"
+                    title="Send Weekly Executive Digest"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Digest</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsSitemapModalOpen(true)}
+                    className="px-3 py-2 rounded-lg text-xs font-mono font-medium border border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-1.5"
+                    title="Submit Sitemap to Google Search Console"
+                  >
+                    <Send className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Sitemap</span>
+                  </button>
+
+                  <button
+                    onClick={handleTriggerSync}
+                    disabled={isSyncing}
+                    className="px-3.5 py-2 rounded-lg text-xs font-mono font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 hover:brightness-110 shadow-glow-cyan flex items-center gap-2 disabled:opacity-40"
+                  >
+                    <RefreshCw
+                      className={`w-3.5 h-3.5 text-slate-950 ${isSyncing ? "animate-spin" : ""}`}
+                    />
+                    <span>{isSyncing ? "Syncing..." : "Sync Radar"}</span>
+                  </button>
+                </>
               )}
               <button
                 onClick={() => setIsProjectModalOpen(true)}
@@ -349,6 +393,17 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Phase 5: Historical Performance Trend Visualization */}
+              <AnalyticsTrendChart
+                projectId={currentProject.id}
+                snapshots={snapshots}
+                isLoading={isLoadingData}
+                onTriggerSync={handleTriggerSync}
+                onOpenDigestModal={() => setIsDigestModalOpen(true)}
+                onPingSitemap={() => setIsSitemapModalOpen(true)}
+              />
+
+              {/* Striking Distance Query Matrix */}
               <StrikingDistanceTable
                 queries={queries}
                 isLoading={isLoadingData}
@@ -362,6 +417,15 @@ export default function DashboardPage() {
               <StagedActionsDrawer
                 projectId={currentProject.id}
                 refreshTrigger={stagedRefreshCounter}
+                onDeploySuccess={() => {
+                  setAuditRefreshCounter((c) => c + 1);
+                }}
+              />
+
+              {/* Phase 4: Immutable Deployment Audit Trail */}
+              <DeploymentAuditFeed
+                projectId={currentProject.id}
+                refreshTrigger={auditRefreshCounter}
               />
             </div>
           )}
@@ -393,6 +457,29 @@ export default function DashboardPage() {
         targetQuery={selectedQueryForEnrichment}
         onStagedSuccess={() => {
           setStagedRefreshCounter((c) => c + 1);
+        }}
+      />
+
+      {/* Phase 5 Executive Digest Modal */}
+      <ExecutiveDigestModal
+        isOpen={isDigestModalOpen}
+        onClose={() => setIsDigestModalOpen(false)}
+        projectId={currentProject?.id}
+        projectName={currentProject?.name}
+        onDigestSent={() => {
+          setAuditRefreshCounter((c) => c + 1);
+        }}
+      />
+
+      {/* Phase 5 Sitemap Ping Modal */}
+      <SitemapPingModal
+        isOpen={isSitemapModalOpen}
+        onClose={() => setIsSitemapModalOpen(false)}
+        projectId={currentProject?.id}
+        siteUrl={currentProject?.siteUrl}
+        gscPropertyId={currentProject?.gscPropertyId}
+        onPingSuccess={() => {
+          setAuditRefreshCounter((c) => c + 1);
         }}
       />
     </div>
