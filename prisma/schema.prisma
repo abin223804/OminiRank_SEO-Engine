@@ -1,0 +1,156 @@
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+enum PlanTier {
+  FREE
+  STARTER
+  PRO
+  AGENCY
+}
+
+enum DeploymentMode {
+  AUTO_PR
+  DIRECT_COMMIT
+  WEBHOOK_ONLY
+}
+
+model User {
+  id            String            @id @default(cuid())
+  email         String            @unique
+  name          String?
+  avatarUrl     String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  workspaces    WorkspaceMember[]
+}
+
+model Workspace {
+  id                   String            @id @default(cuid())
+  name                 String
+  slug                 String            @unique
+  planTier             PlanTier          @default(STARTER)
+  stripeCustomerId     String?           @unique
+  stripeSubscriptionId String?           @unique
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  members              WorkspaceMember[]
+  projects             Project[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  role        String    @default("MEMBER") // OWNER, ADMIN, MEMBER
+  userId      String
+  workspaceId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+model Project {
+  id                       String             @id @default(cuid())
+  workspaceId              String
+  name                     String
+  siteUrl                  String             // e.g. "https://www.abinschandran.in"
+  gscPropertyId            String             // e.g. "sc-domain:abinschandran.in" or URL prefix
+  deploymentMode           DeploymentMode     @default(AUTO_PR)
+  githubRepo               String?            // e.g. "owner/repo"
+  githubBranch             String             @default("main")
+  githubTokenEnc           String?            // Encrypted GitHub App installation or access token
+  gscAuthMethod            String             @default("OAUTH") // OAUTH or SERVICE_ACCOUNT
+  gscServiceAccountJsonEnc String?            // Encrypted JSON credentials
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  workspace                Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  snapshots                SearchSnapshot[]
+  queries                  RankedQuery[]
+  competitors              Competitor[]
+  enrichments              EnrichmentAction[]
+  auditLogs                DeploymentAudit[]
+}
+
+model SearchSnapshot {
+  id               String        @id @default(cuid())
+  projectId        String
+  startDate        DateTime
+  endDate          DateTime
+  totalImpressions Int
+  totalClicks      Int
+  avgCtr           Float
+  avgPosition      Float
+  totalQueries     Int
+  createdAt        DateTime      @default(now())
+
+  project          Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  queries          RankedQuery[]
+}
+
+model RankedQuery {
+  id                 String         @id @default(cuid())
+  projectId          String
+  snapshotId         String
+  query              String
+  pageUrl            String
+  impressions        Int
+  clicks             Int
+  ctr                Float
+  position           Float
+  isStrikingDistance Boolean        @default(false) // Position 11.0 to 30.0
+  positionDelta      Float?         // Delta vs previous snapshot
+  lastSeen           DateTime       @default(now())
+
+  project            Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  snapshot           SearchSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, isStrikingDistance])
+  @@index([projectId, query])
+}
+
+model Competitor {
+  id                String    @id @default(cuid())
+  projectId         String
+  domain            String
+  scrapeUrl         String
+  lastScrapedAt     DateTime?
+  extractedKeywords Json?     // Array of discovered keywords
+  contentTopics     Json?     // Discovered headings and content structure
+  createdAt         DateTime  @default(now())
+
+  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model EnrichmentAction {
+  id             String   @id @default(cuid())
+  projectId      String
+  targetPageUrl  String
+  triggerQueries Json     // Queries triggering this update
+  generatedType  String   // "FAQ", "COMPARISON", "CODE_SNIPPET", "META_TAGS"
+  payload        Json     // Structured FAQ array, comparison table, or code
+  status         String   @default("STAGED") // STAGED, COMMITTED, REJECTED, ROLLED_BACK
+  gitPrNumber    Int?
+  gitCommitSha   String?
+  createdAt      DateTime @default(now())
+
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model DeploymentAudit {
+  id        String   @id @default(cuid())
+  projectId String
+  event     String   // BUILD_PASSED, BUILD_FAILED, COMMIT_SUCCESS, ROLLBACK_TRIGGERED
+  details   String?
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
