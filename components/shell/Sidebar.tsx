@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 interface SidebarProps {
   workspaceSlug?: string;
   planTier?: string;
+  onOpenPricingModal?: () => void;
 }
 
 const navItems = [
@@ -56,7 +57,7 @@ const navItems = [
   },
 ];
 
-export function Sidebar({ planTier = "STARTER" }: SidebarProps) {
+export function Sidebar({ planTier = "STARTER", onOpenPricingModal }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -76,9 +77,20 @@ export function Sidebar({ planTier = "STARTER" }: SidebarProps) {
             </span>
           </div>
         </Link>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 font-semibold uppercase">
-          {planTier}
-        </span>
+        {onOpenPricingModal ? (
+          <button
+            onClick={onOpenPricingModal}
+            className="text-[10px] font-mono px-2 py-0.5 rounded border border-cyan-500/40 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-400 font-semibold uppercase transition-colors flex items-center gap-1"
+            title="Click to view pricing & upgrade tier"
+          >
+            <span>{planTier}</span>
+            <span className="text-[9px] text-cyan-300 font-bold">↑</span>
+          </button>
+        ) : (
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 font-semibold uppercase">
+            {planTier}
+          </span>
+        )}
       </div>
 
       {/* Navigation */}

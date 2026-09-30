@@ -1,5 +1,6 @@
 import { syncProjectSearchConsole, SyncProjectOptions } from "./sync";
 import { SyncResult } from "./types";
+import { queueManager } from "@/lib/queue/manager";
 
 export type JobStatus = "queued" | "active" | "completed" | "failed";
 
@@ -36,6 +37,11 @@ class GscSyncQueue {
 
     this.jobs.set(jobId, job);
     this.queue.push(jobId);
+
+    // Asynchronously mirror into distributed MongoDB Atlas queue
+    queueManager.enqueue("GSC_SYNC", { projectId, options }, { projectId }).catch((err) => {
+      console.warn("[Queue Sync Mirror Warning]", err?.message || err);
+    });
 
     // Kick off worker loop asynchronously
     this.processNext().catch((err) => {

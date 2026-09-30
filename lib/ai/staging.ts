@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { EnrichmentType, EnrichmentStatus } from "./types";
 import { generateEnrichment } from "./generator";
 import { sanitizePayloadRecursively } from "./sanitizer";
+import { getCompetitorContextForGeneration } from "@/lib/competitor/service";
 
 export interface StageEnrichmentOptions {
   queryId?: string;
@@ -46,13 +47,29 @@ export async function stageEnrichmentAction(
 
   const enrichmentType: EnrichmentType = options.type || "FAQ";
 
-  // Generate enriched content
-  const rawPayload = await generateEnrichment({
-    query: finalQuery,
-    targetPageUrl: finalTargetUrl,
-    type: enrichmentType,
-    competitorContext: options.competitorContext,
-  });
+  // Generate enriched content with real competitor intelligence
+  let competitorContext = undefined;
+  try {
+    const compCtx = await getCompetitorContextForGeneration(projectId);
+    if (compCtx.topics.length || compCtx.keywords.length) {
+      competitorContext = {
+        competitorTopics: compCtx.topics,
+        competitorKeywords: compCtx.keywords,
+      };
+    }
+  } catch {
+    // Graceful fallback if no competitors registered yet
+  }
+
+  const rawPayload = await generateEnrichment(
+    {
+      query: finalQuery,
+      targetPageUrl: finalTargetUrl,
+      type: enrichmentType,
+      competitorContext: options.competitorContext,
+    },
+    competitorContext
+  );
 
   // Ensure sanitized payload
   const cleanPayload = sanitizePayloadRecursively(rawPayload);

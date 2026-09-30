@@ -1,0 +1,68 @@
+name: OmniRank Production CI/CD & Regression Guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-test:
+    name: Build, Lint, Typecheck & Full Regression Matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      NODE_ENV: test
+      ENCRYPTION_KEY: f8a42b109e530965d1bca142e09875e53fa69dc9ef310461291f09cb8d95642a
+      DEV_AUTH_USER_ID: user_omnirank_architect
+      DEV_AUTH_USER_EMAIL: architect@tekora.internal
+      DEV_AUTH_USER_NAME: Staff Architect
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Start MongoDB Replica Set
+        uses: supercharge/mongodb-github-action@1.11.0
+        with:
+          mongodb-version: "7.0"
+          mongodb-replica-set: "rs0"
+
+      - name: Set DATABASE_URL for Runner
+        run: |
+          echo "DATABASE_URL=mongodb://127.0.0.1:27017/omnirank?replicaSet=rs0&directConnection=true" >> $GITHUB_ENV
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      - name: Push Schema to MongoDB
+        run: npm run prisma:db:push
+
+      - name: Run Database Migration Guard
+        run: npx tsx scripts/db-migration-guard.ts
+
+      - name: Strict TypeScript Compilation
+        run: npm run typecheck
+
+      - name: ESLint Code Quality
+        run: npm run lint
+
+      - name: Run Full Regression Test Suite (All Phases 1–14)
+        run: npm run test:all
+
+      - name: Compile Production Next.js Bundle
+        run: npm run build

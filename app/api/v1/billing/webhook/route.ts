@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       const customerId = dataObject.customer;
       const subscriptionId = dataObject.subscription;
       const workspaceId = dataObject.client_reference_id || dataObject.metadata?.workspaceId;
+      const planTier = (dataObject.metadata?.planTier as any) || "PRO";
 
       if (workspaceId) {
         await prisma.workspace.update({
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
           data: {
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscriptionId,
-            planTier: "PRO",
+            planTier: planTier,
           },
         });
       }

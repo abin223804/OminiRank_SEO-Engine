@@ -1,12 +1,10 @@
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [pgvector(map: "vector")]
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  provider = "prisma-client-js"
 }
 
 enum PlanTier {
@@ -23,42 +21,64 @@ enum DeploymentMode {
 }
 
 model User {
-  id            String            @id @default(cuid())
-  email         String            @unique
+  id            String                @id @default(auto()) @map("_id") @db.ObjectId
+  supabaseId    String?
+  email         String                @unique
   name          String?
   avatarUrl     String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
   workspaces    WorkspaceMember[]
+  sentInvites   WorkspaceInvitation[]
 }
 
 model Workspace {
-  id                   String            @id @default(cuid())
+  id                   String                @id @default(auto()) @map("_id") @db.ObjectId
   name                 String
-  slug                 String            @unique
-  planTier             PlanTier          @default(STARTER)
-  stripeCustomerId     String?           @unique
-  stripeSubscriptionId String?           @unique
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  slug                 String                @unique
+  planTier             PlanTier              @default(STARTER)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  customDomain         String?
+  branding             Json?                 // logoUrl, primaryColor, accentColor, companyName, senderEmail
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
   members              WorkspaceMember[]
+  invitations          WorkspaceInvitation[]
   projects             Project[]
+  webhooks             WebhookSubscription[]
 }
 
 model WorkspaceMember {
-  id          String    @id @default(cuid())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   role        String    @default("MEMBER") // OWNER, ADMIN, MEMBER
-  userId      String
-  workspaceId String
+  userId      String    @db.ObjectId
+  workspaceId String    @db.ObjectId
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([userId, workspaceId])
 }
 
+model WorkspaceInvitation {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  workspaceId String    @db.ObjectId
+  email       String
+  role        String    @default("MEMBER") // ADMIN, MEMBER
+  token       String    @unique
+  invitedById String    @db.ObjectId
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy   User      @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email])
+}
+
 model Project {
-  id                       String             @id @default(cuid())
-  workspaceId              String
+  id                       String             @id @default(auto()) @map("_id") @db.ObjectId
+  workspaceId              String             @db.ObjectId
   name                     String
   siteUrl                  String             // e.g. "https://www.abinschandran.in"
   gscPropertyId            String             // e.g. "sc-domain:abinschandran.in" or URL prefix
@@ -77,11 +97,13 @@ model Project {
   competitors              Competitor[]
   enrichments              EnrichmentAction[]
   auditLogs                DeploymentAudit[]
+  backgroundJobs           BackgroundJob[]
+  cmsConnections           CmsConnection[]
 }
 
 model SearchSnapshot {
-  id               String        @id @default(cuid())
-  projectId        String
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  projectId        String        @db.ObjectId
   startDate        DateTime
   endDate          DateTime
   totalImpressions Int
@@ -96,9 +118,9 @@ model SearchSnapshot {
 }
 
 model RankedQuery {
-  id                 String         @id @default(cuid())
-  projectId          String
-  snapshotId         String
+  id                 String         @id @default(auto()) @map("_id") @db.ObjectId
+  projectId          String         @db.ObjectId
+  snapshotId         String         @db.ObjectId
   query              String
   pageUrl            String
   impressions        Int
@@ -117,8 +139,8 @@ model RankedQuery {
 }
 
 model Competitor {
-  id                String    @id @default(cuid())
-  projectId         String
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  projectId         String    @db.ObjectId
   domain            String
   scrapeUrl         String
   lastScrapedAt     DateTime?
@@ -130,13 +152,14 @@ model Competitor {
 }
 
 model EnrichmentAction {
-  id             String   @id @default(cuid())
-  projectId      String
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  projectId      String   @db.ObjectId
   targetPageUrl  String
   triggerQueries Json     // Queries triggering this update
   generatedType  String   // "FAQ", "COMPARISON", "CODE_SNIPPET", "META_TAGS"
   payload        Json     // Structured FAQ array, comparison table, or code
   status         String   @default("STAGED") // STAGED, COMMITTED, REJECTED, ROLLED_BACK
+  embedding      Float[]  // 768-dim dense embedding for semantic cache
   gitPrNumber    Int?
   gitCommitSha   String?
   createdAt      DateTime @default(now())
@@ -145,12 +168,88 @@ model EnrichmentAction {
 }
 
 model DeploymentAudit {
-  id        String   @id @default(cuid())
-  projectId String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  projectId String   @db.ObjectId
   event     String   // BUILD_PASSED, BUILD_FAILED, COMMIT_SUCCESS, ROLLBACK_TRIGGERED
   details   String?
   metadata  Json?
   timestamp DateTime @default(now())
 
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model BackgroundJob {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  jobType        String    // "GSC_SYNC", "WEEKLY_DIGEST", "QUOTA_RESET", "INDEXING_PING"
+  status         String    @default("QUEUED") // "QUEUED", "ACTIVE", "COMPLETED", "FAILED", "DEAD_LETTER"
+  priority       Int       @default(0)        // Higher number runs first
+  payload        Json
+  result         Json?
+  error          String?
+  stackTrace     String?
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(3)
+  backoffDelayMs Int       @default(1000)
+  nextRunAt      DateTime  @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  projectId      String?   @db.ObjectId
+  workspaceId    String?   @db.ObjectId
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  project        Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRunAt])
+  @@index([jobType, status])
+  @@index([projectId])
+  @@index([workspaceId])
+}
+
+model CronExecutionAudit {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  cronName    String   // "daily-gsc-sync", "weekly-digest", "monthly-quota-reset"
+  status      String   // "SUCCESS", "FAILED", "PARTIAL"
+  durationMs  Int
+  itemsCount  Int      @default(0)
+  errorsCount Int      @default(0)
+  details     Json?
+  executedAt  DateTime @default(now())
+
+  @@index([cronName, executedAt])
+}
+
+model CmsConnection {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  projectId      String    @db.ObjectId
+  provider       String    // "GITHUB_APP" | "WORDPRESS" | "WEBFLOW"
+  siteUrl        String?
+  credentialsEnc String    // Encrypted API token, app pass, or installation ID
+  metadata       Json?     // e.g. collectionId, customFieldMapping, pluginType
+  status         String    @default("CONNECTED") // "CONNECTED" | "ERROR" | "EXPIRED"
+  lastSyncedAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, provider])
+}
+
+model WebhookSubscription {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  workspaceId String    @db.ObjectId
+  url         String
+  secretEnc   String    // AES-256-GCM encrypted secret for HMAC-SHA256 signature
+  events      String[]  // "RANKING_DELTA_DETECTED", "PR_DEPLOYED", "RECRAWL_PINGED", "QUOTA_WARNING"
+  format      String    @default("GENERIC") // "GENERIC" | "SLACK" | "DISCORD"
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, isActive])
 }

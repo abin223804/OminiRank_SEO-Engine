@@ -99,7 +99,7 @@ export function StageEnrichmentModal({
                   </span>
                 </Dialog.Title>
                 <Dialog.Description className="text-xs text-slate-400 mt-0.5">
-                  Target: <span className="text-cyan-300 font-mono font-semibold">"{targetQuery.query}"</span> (Rank {targetQuery.position.toFixed(1)})
+                  Target: <span className="text-cyan-300 font-mono font-semibold">&quot;{targetQuery.query}&quot;</span> (Rank {targetQuery.position.toFixed(1)})
                 </Dialog.Description>
               </div>
             </div>

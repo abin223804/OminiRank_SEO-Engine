@@ -245,7 +245,7 @@ export function ExecutiveDigestModal({
                         key={i}
                         className="p-2 rounded bg-slate-900/80 border border-slate-800 flex items-center justify-between"
                       >
-                        <span className="text-slate-200 truncate max-w-[260px]">"{q.query}"</span>
+                        <span className="text-slate-200 truncate max-w-[260px]">&quot;{q.query}&quot;</span>
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="text-cyan-400 font-bold">Pos {q.position.toFixed(1)}</span>
                           <span className="text-slate-400">{q.impressions.toLocaleString()} imp</span>

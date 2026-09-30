@@ -4,7 +4,10 @@ export type DeploymentEvent =
   | "COMMIT_SUCCESS"
   | "ROLLBACK_TRIGGERED"
   | "DIGEST_SENT"
-  | "SITEMAP_PINGED";
+  | "SITEMAP_PINGED"
+  | "CMS_DEPLOY_SUCCESS"
+  | "CMS_DEPLOY_FAILED"
+  | "WEBHOOK_DISPATCHED";
 
 export interface SandboxValidationResult {
   isValid: boolean;

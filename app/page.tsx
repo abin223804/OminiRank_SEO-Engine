@@ -23,6 +23,9 @@ import {
 } from "@/components/dashboard/AnalyticsTrendChart";
 import { ExecutiveDigestModal } from "@/components/dashboard/ExecutiveDigestModal";
 import { SitemapPingModal } from "@/components/dashboard/SitemapPingModal";
+import { WorkspaceMembersModal } from "@/components/dashboard/WorkspaceMembersModal";
+import { PricingUpgradeModal } from "@/components/dashboard/PricingUpgradeModal";
+import { CompetitorAnalysisModal } from "@/components/dashboard/CompetitorAnalysisModal";
 import {
   Crosshair,
   TrendingUp,
@@ -36,6 +39,7 @@ import {
   AlertCircle,
   Mail,
   Send,
+  Radar,
 } from "lucide-react";
 
 interface SnapshotData {
@@ -72,6 +76,16 @@ export default function DashboardPage() {
   // Phase 5: Executive Digest & Sitemap Modal State
   const [isDigestModalOpen, setIsDigestModalOpen] = useState(false);
   const [isSitemapModalOpen, setIsSitemapModalOpen] = useState(false);
+
+  // Enterprise Multi-Tenancy: Team Members Modal State
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+
+  // Stripe Billing & Monetization: Pricing & Paywall Modal State
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [quotaErrorMessage, setQuotaErrorMessage] = useState<string | null>(null);
+
+  // Competitor Intelligence Modal State
+  const [isCompetitorModalOpen, setIsCompetitorModalOpen] = useState(false);
 
   const loadProjectData = useCallback(async (projectId: string) => {
     setIsLoadingData(true);
@@ -145,7 +159,13 @@ export default function DashboardPage() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#060a12]">
       {/* Sidebar */}
-      <Sidebar planTier={currentWorkspace?.planTier || "STARTER"} />
+      <Sidebar
+        planTier={currentWorkspace?.planTier || "STARTER"}
+        onOpenPricingModal={() => {
+          setQuotaErrorMessage(null);
+          setIsPricingModalOpen(true);
+        }}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -160,6 +180,7 @@ export default function DashboardPage() {
           onSelectProject={(proj) => setCurrentProject(proj)}
           onOpenCreateWorkspaceModal={() => setIsWorkspaceModalOpen(true)}
           onOpenCreateProjectModal={() => setIsProjectModalOpen(true)}
+          onOpenMembersModal={() => setIsMembersModalOpen(true)}
           onTriggerSync={handleTriggerSync}
           isSyncing={isSyncing}
         />
@@ -219,6 +240,15 @@ export default function DashboardPage() {
             <div className="flex items-center flex-wrap gap-2.5">
               {currentProject && (
                 <>
+                  <button
+                    onClick={() => setIsCompetitorModalOpen(true)}
+                    className="px-3 py-2 rounded-lg text-xs font-mono font-medium border border-purple-500/40 bg-purple-950/30 text-purple-300 hover:bg-purple-900/40 transition-colors flex items-center gap-1.5"
+                    title="Reverse-Engineer Competitor Intelligence"
+                  >
+                    <Radar className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Competitors</span>
+                  </button>
+
                   <button
                     onClick={() => setIsDigestModalOpen(true)}
                     className="px-3 py-2 rounded-lg text-xs font-mono font-medium border border-cyan-500/40 bg-cyan-950/30 text-cyan-300 hover:bg-cyan-900/40 transition-colors flex items-center gap-1.5"
@@ -481,6 +511,35 @@ export default function DashboardPage() {
         onPingSuccess={() => {
           setAuditRefreshCounter((c) => c + 1);
         }}
+      />
+
+      {/* Enterprise Multi-Tenancy Team Members Modal */}
+      <WorkspaceMembersModal
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
+        workspaceId={currentWorkspace?.id}
+        workspaceName={currentWorkspace?.name}
+      />
+
+      {/* Stripe Billing & Monetization Pricing Modal */}
+      <PricingUpgradeModal
+        isOpen={isPricingModalOpen}
+        onClose={() => {
+          setIsPricingModalOpen(false);
+          setQuotaErrorMessage(null);
+        }}
+        workspaceId={currentWorkspace?.id}
+        workspaceName={currentWorkspace?.name}
+        currentTier={currentWorkspace?.planTier as any}
+        quotaErrorMessage={quotaErrorMessage}
+      />
+
+      {/* Competitor Intelligence Modal */}
+      <CompetitorAnalysisModal
+        isOpen={isCompetitorModalOpen}
+        onClose={() => setIsCompetitorModalOpen(false)}
+        projectId={currentProject?.id}
+        projectName={currentProject?.name}
       />
     </div>
   );

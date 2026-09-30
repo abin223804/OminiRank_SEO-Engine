@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
 export type PlanTier = "FREE" | "STARTER" | "PRO" | "AGENCY";
@@ -52,6 +53,17 @@ export class QuotaExceededError extends Error {
 }
 
 /**
+ * Returns an authenticated Stripe client or null if not configured
+ */
+export function getStripeClient(): Stripe | null {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
+  return new Stripe(secretKey, {
+    apiVersion: "2025-02-24.acacia" as any,
+  });
+}
+
+/**
  * Checks whether a workspace has sufficient quota for an action
  */
 export async function checkWorkspaceQuota(
@@ -89,7 +101,6 @@ export async function checkWorkspaceQuota(
   }
 
   if (actionType === "CREATE_ENRICHMENT") {
-    // Count enrichments created in current calendar month
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -122,8 +133,136 @@ export async function checkWorkspaceQuota(
 }
 
 /**
+ * Creates a Stripe Checkout Session for subscription upgrade
+ */
+export async function createCheckoutSession(params: {
+  workspaceId: string;
+  userEmail: string;
+  userName?: string | null;
+  targetTier: PlanTier;
+  successUrl: string;
+  cancelUrl: string;
+}): Promise<{ url: string; sessionId?: string; isMock: boolean }> {
+  const stripe = getStripeClient();
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: params.workspaceId },
+  });
+
+  if (!workspace) {
+    throw new Error(`Workspace '${params.workspaceId}' not found`);
+  }
+
+  // Graceful fallback for local development & testing when keys are omitted
+  if (!stripe) {
+    const mockSessionId = `mock_cs_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const mockUrl = `${params.successUrl}?session_id=${mockSessionId}&mock=true&tier=${params.targetTier}`;
+    return { url: mockUrl, sessionId: mockSessionId, isMock: true };
+  }
+
+  // Resolve or create customer in Stripe
+  let customerId = workspace.stripeCustomerId;
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: params.userEmail,
+      name: params.userName || undefined,
+      metadata: {
+        workspaceId: workspace.id,
+        workspaceSlug: workspace.slug,
+      },
+    });
+    customerId = customer.id;
+    await prisma.workspace.update({
+      where: { id: workspace.id },
+      data: { stripeCustomerId: customerId },
+    });
+  }
+
+  const quota = TIER_QUOTAS[params.targetTier];
+  const configuredPriceId =
+    params.targetTier === "AGENCY"
+      ? process.env.STRIPE_AGENCY_PRICE_ID
+      : params.targetTier === "PRO"
+      ? process.env.STRIPE_PRO_PRICE_ID
+      : process.env.STRIPE_STARTER_PRICE_ID;
+
+  let lineItems: Stripe.Checkout.SessionCreateParams.LineItem[];
+
+  if (configuredPriceId) {
+    lineItems = [{ price: configuredPriceId, quantity: 1 }];
+  } else {
+    // Dynamic price definition if pre-created Stripe price IDs are not configured
+    lineItems = [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: `OmniRank ${params.targetTier} Plan`,
+            description: `Autonomous Search Console Intelligence (${quota.maxProjects} Domains, ${quota.maxEnrichmentsPerMonth} Monthly AI Enrichments)`,
+          },
+          unit_amount: quota.priceMonthlyUsd * 100,
+          recurring: {
+            interval: "month",
+          },
+        },
+        quantity: 1,
+      },
+    ];
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: "subscription",
+    payment_method_types: ["card"],
+    line_items: lineItems,
+    metadata: {
+      workspaceId: workspace.id,
+      planTier: params.targetTier,
+    },
+    client_reference_id: workspace.id,
+    success_url: `${params.successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: params.cancelUrl,
+  });
+
+  return { url: session.url || params.cancelUrl, sessionId: session.id, isMock: false };
+}
+
+/**
+ * Creates a Stripe Billing Portal session for managing subscriptions & invoices
+ */
+export async function createCustomerPortalSession(params: {
+  workspaceId: string;
+  returnUrl: string;
+}): Promise<{ url: string; isMock: boolean }> {
+  const stripe = getStripeClient();
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: params.workspaceId },
+  });
+
+  if (!workspace) {
+    throw new Error(`Workspace '${params.workspaceId}' not found`);
+  }
+
+  if (!stripe) {
+    return {
+      url: `${params.returnUrl}?portal_mock=true`,
+      isMock: true,
+    };
+  }
+
+  if (!workspace.stripeCustomerId) {
+    throw new Error("No active Stripe customer account associated with this workspace.");
+  }
+
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: workspace.stripeCustomerId,
+    return_url: params.returnUrl,
+  });
+
+  return { url: portalSession.url, isMock: false };
+}
+
+/**
  * Verifies Stripe Webhook HMAC-SHA256 signature
- * Format: t=timestamp,v1=signature
  */
 export function verifyStripeSignature(
   rawBody: string,
@@ -144,7 +283,6 @@ export function verifyStripeSignature(
 
   if (!timestamp || signatures.length === 0) return false;
 
-  // Signed payload format: timestamp + "." + rawBody
   const signedPayload = `${timestamp}.${rawBody}`;
   const hmac = crypto.createHmac("sha256", webhookSecret);
   hmac.update(signedPayload, "utf8");
