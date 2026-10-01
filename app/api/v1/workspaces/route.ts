@@ -109,8 +109,9 @@ export async function GET() {
     return NextResponse.json({ workspaces });
   } catch (error) {
     console.error("GET /api/v1/workspaces error:", error);
+    const message = error instanceof Error ? error.message : "Failed to retrieve workspaces";
     return NextResponse.json(
-      { error: "Failed to retrieve workspaces" },
+      { error: message },
       { status: 500 }
     );
   }
@@ -168,8 +169,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ workspace: newWorkspace }, { status: 201 });
   } catch (error) {
     console.error("POST /api/v1/workspaces error:", error);
+    const message = error instanceof Error ? error.message : "Failed to create workspace";
     return NextResponse.json(
-      { error: "Failed to create workspace" },
+      { error: message },
       { status: 500 }
     );
   }
