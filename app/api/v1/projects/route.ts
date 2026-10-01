@@ -6,7 +6,7 @@ import { encryptSecret } from "@/lib/crypto";
 import { z } from "zod";
 
 const createProjectSchema = z.object({
-  workspaceId: z.string().cuid("Invalid workspace ID"),
+  workspaceId: z.string().min(1, "Workspace ID is required").optional(),
   name: z.string().min(2).max(100),
   siteUrl: z.string().url("Must be a valid URL (e.g. https://example.com)"),
   gscPropertyId: z.string().min(3, "GSC Property ID required (e.g. sc-domain:example.com or URL)"),
@@ -84,8 +84,61 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
+    let targetWorkspaceId = data.workspaceId;
+
+    if (!targetWorkspaceId) {
+      // Find user's existing workspace where they have ADMIN/OWNER role
+      const member = await prisma.workspaceMember.findFirst({
+        where: {
+          userId: user.id,
+          role: { in: ["OWNER", "ADMIN"] },
+        },
+        include: { workspace: true },
+        orderBy: { workspace: { createdAt: "asc" } },
+      });
+
+      if (member) {
+        targetWorkspaceId = member.workspaceId;
+      } else {
+        // Auto-provision a default workspace for user
+        const displayName = user.name || user.email.split("@")[0] || "My Workspace";
+        const defaultName = displayName.toLowerCase().includes("workspace")
+          ? displayName
+          : `${displayName}'s Workspace`;
+
+        const baseSlug = (user.name || user.email.split("@")[0] || "workspace")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "workspace";
+        const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+        const slug = `${baseSlug}-${uniqueSuffix}`;
+
+        const newWs = await prisma.$transaction(async (tx) => {
+          const ws = await tx.workspace.create({
+            data: {
+              name: defaultName,
+              slug,
+              planTier: "STARTER",
+            },
+          });
+
+          await tx.workspaceMember.create({
+            data: {
+              userId: user.id,
+              workspaceId: ws.id,
+              role: "OWNER",
+            },
+          });
+
+          return ws;
+        });
+
+        targetWorkspaceId = newWs.id;
+      }
+    }
+
     // RBAC: Requires at least ADMIN role to create projects in workspace
-    await validateWorkspaceMembership(user.id, data.workspaceId, "ADMIN");
+    await validateWorkspaceMembership(user.id, targetWorkspaceId, "ADMIN");
 
     // Encrypt sensitive credentials if provided
     const githubTokenEnc = data.githubToken ? encryptSecret(data.githubToken) : null;
@@ -95,7 +148,7 @@ export async function POST(req: NextRequest) {
 
     const project = await prisma.project.create({
       data: {
-        workspaceId: data.workspaceId,
+        workspaceId: targetWorkspaceId,
         name: data.name,
         siteUrl: data.siteUrl,
         gscPropertyId: data.gscPropertyId,
@@ -108,6 +161,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const targetWorkspace = await prisma.workspace.findUnique({
+      where: { id: targetWorkspaceId },
+    });
+
     // Return safe project representation
     const { githubTokenEnc: _, gscServiceAccountJsonEnc: __, ...safeProject } = project;
 
@@ -118,6 +175,7 @@ export async function POST(req: NextRequest) {
           hasGithubToken: Boolean(githubTokenEnc),
           hasServiceAccountJson: Boolean(gscServiceAccountJsonEnc),
         },
+        workspace: targetWorkspace,
       },
       { status: 201 }
     );

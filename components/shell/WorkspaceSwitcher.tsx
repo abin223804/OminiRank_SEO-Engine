@@ -13,29 +13,41 @@ export interface WorkspaceItem {
 }
 
 interface WorkspaceSwitcherProps {
+  workspaces?: WorkspaceItem[];
   currentWorkspaceId?: string;
   onSelectWorkspace?: (ws: WorkspaceItem) => void;
   onOpenCreateModal?: () => void;
 }
 
 export function WorkspaceSwitcher({
+  workspaces: propWorkspaces,
   currentWorkspaceId,
   onSelectWorkspace,
   onOpenCreateModal,
 }: WorkspaceSwitcherProps) {
-  const [workspaces, setWorkspaces] = useState<WorkspaceItem[]>([]);
+  const [workspaces, setWorkspaces] = useState<WorkspaceItem[]>(propWorkspaces || []);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(propWorkspaces === undefined);
 
   useEffect(() => {
+    if (propWorkspaces !== undefined) {
+      setWorkspaces(propWorkspaces);
+      setLoading(false);
+      if (propWorkspaces.length > 0 && !currentWorkspaceId && onSelectWorkspace) {
+        onSelectWorkspace(propWorkspaces[0]);
+      }
+      return;
+    }
+
     async function loadWorkspaces() {
       try {
         const res = await fetch("/api/v1/workspaces");
         if (res.ok) {
           const data = await res.json();
-          setWorkspaces(data.workspaces || []);
-          if (data.workspaces?.length > 0 && !currentWorkspaceId && onSelectWorkspace) {
-            onSelectWorkspace(data.workspaces[0]);
+          const list = data.workspaces || [];
+          setWorkspaces(list);
+          if (list.length > 0 && !currentWorkspaceId && onSelectWorkspace) {
+            onSelectWorkspace(list[0]);
           }
         }
       } catch (err) {
@@ -45,7 +57,7 @@ export function WorkspaceSwitcher({
       }
     }
     loadWorkspaces();
-  }, [currentWorkspaceId, onSelectWorkspace]);
+  }, [propWorkspaces, currentWorkspaceId, onSelectWorkspace]);
 
   const activeWorkspace =
     workspaces.find((w) => w.id === currentWorkspaceId) || workspaces[0];

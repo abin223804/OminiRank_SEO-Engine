@@ -40,6 +40,7 @@ import {
   Mail,
   Send,
   Radar,
+  Building2,
 } from "lucide-react";
 
 interface SnapshotData {
@@ -53,6 +54,8 @@ interface SnapshotData {
 }
 
 export default function DashboardPage() {
+  const [workspaces, setWorkspaces] = useState<WorkspaceItem[]>([]);
+  const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(true);
   const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceItem | null>(null);
   const [currentProject, setCurrentProject] = useState<ProjectItem | null>(null);
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
@@ -86,6 +89,43 @@ export default function DashboardPage() {
 
   // Competitor Intelligence Modal State
   const [isCompetitorModalOpen, setIsCompetitorModalOpen] = useState(false);
+
+  const loadWorkspaces = useCallback(async () => {
+    setIsLoadingWorkspaces(true);
+    try {
+      const res = await fetch("/api/v1/workspaces");
+      if (res.ok) {
+        const data = await res.json();
+        const list: WorkspaceItem[] = data.workspaces || [];
+        setWorkspaces(list);
+        if (list.length > 0) {
+          setCurrentWorkspace((prev) => {
+            if (prev && list.some((w) => w.id === prev.id)) {
+              return prev;
+            }
+            return list[0];
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load workspaces:", err);
+    } finally {
+      setIsLoadingWorkspaces(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadWorkspaces();
+  }, [loadWorkspaces]);
+
+  const handleSelectWorkspace = useCallback((ws: WorkspaceItem) => {
+    setCurrentWorkspace(ws);
+    setCurrentProject(null);
+  }, []);
+
+  const handleSelectProject = useCallback((proj: ProjectItem) => {
+    setCurrentProject(proj);
+  }, []);
 
   const loadProjectData = useCallback(async (projectId: string) => {
     setIsLoadingData(true);
@@ -171,13 +211,11 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
         <Topbar
+          workspaces={workspaces}
           currentWorkspace={currentWorkspace}
           currentProject={currentProject}
-          onSelectWorkspace={(ws) => {
-            setCurrentWorkspace(ws);
-            setCurrentProject(null);
-          }}
-          onSelectProject={(proj) => setCurrentProject(proj)}
+          onSelectWorkspace={handleSelectWorkspace}
+          onSelectProject={handleSelectProject}
           onOpenCreateWorkspaceModal={() => setIsWorkspaceModalOpen(true)}
           onOpenCreateProjectModal={() => setIsProjectModalOpen(true)}
           onOpenMembersModal={() => setIsMembersModalOpen(true)}
@@ -372,7 +410,29 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content: Table or Empty State */}
-          {!currentProject ? (
+          {!currentWorkspace && !isLoadingWorkspaces ? (
+            <div className="rounded-xl border border-slate-800 bg-[#0a0f1d]/80 overflow-hidden py-16 px-6 text-center max-w-md mx-auto space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto shadow-glow-cyan">
+                <Building2 className="w-7 h-7" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-slate-100">
+                  No Active Workspace
+                </h4>
+                <p className="text-xs text-slate-400 mt-1">
+                  Create or select a workspace to organize your tracking domains, team members, and autonomous search audits.
+                </p>
+              </div>
+              <div className="pt-2 flex justify-center gap-3">
+                <button
+                  onClick={() => setIsWorkspaceModalOpen(true)}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 hover:brightness-110 shadow-glow-cyan"
+                >
+                  + Create Workspace
+                </button>
+              </div>
+            </div>
+          ) : !currentProject ? (
             <div className="rounded-xl border border-slate-800 bg-[#0a0f1d]/80 overflow-hidden py-16 px-6 text-center max-w-md mx-auto space-y-4">
               <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto shadow-glow-cyan">
                 <Layers className="w-7 h-7" />
@@ -466,14 +526,32 @@ export default function DashboardPage() {
       <CreateWorkspaceModal
         isOpen={isWorkspaceModalOpen}
         onClose={() => setIsWorkspaceModalOpen(false)}
-        onCreated={(ws) => setCurrentWorkspace(ws)}
+        onCreated={(ws) => {
+          setWorkspaces((prev) => {
+            if (prev.some((w) => w.id === ws.id)) return prev;
+            return [...prev, ws];
+          });
+          setCurrentWorkspace(ws);
+          setCurrentProject(null);
+        }}
       />
 
       <CreateProjectModal
         isOpen={isProjectModalOpen}
         workspaceId={currentWorkspace?.id}
+        workspaces={workspaces}
+        onOpenCreateWorkspaceModal={() => setIsWorkspaceModalOpen(true)}
         onClose={() => setIsProjectModalOpen(false)}
-        onCreated={(proj) => setCurrentProject(proj)}
+        onCreated={(proj, ws) => {
+          if (ws) {
+            setWorkspaces((prev) => {
+              if (prev.some((w) => w.id === ws.id)) return prev;
+              return [...prev, ws];
+            });
+            setCurrentWorkspace(ws);
+          }
+          setCurrentProject(proj);
+        }}
       />
 
       {/* Phase 3 AI Staging Modal */}

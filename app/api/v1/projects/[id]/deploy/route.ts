@@ -6,7 +6,7 @@ import { deployEnrichmentToGit } from "@/lib/deployment/git";
 import { z } from "zod";
 
 const deploySchema = z.object({
-  enrichmentId: z.string().cuid(),
+  enrichmentId: z.string().min(1, "Enrichment ID is required"),
   forceMock: z.boolean().optional(),
 });
 

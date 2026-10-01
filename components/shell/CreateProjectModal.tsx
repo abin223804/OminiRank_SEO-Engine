@@ -1,22 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { X, Globe, GitBranch, KeyRound, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Globe, GitBranch, KeyRound, Sparkles, Building2 } from "lucide-react";
 import { ProjectItem } from "./ProjectSwitcher";
+import { WorkspaceItem } from "./WorkspaceSwitcher";
 
 interface CreateProjectModalProps {
   isOpen: boolean;
   workspaceId?: string;
+  workspaces?: WorkspaceItem[];
+  onOpenCreateWorkspaceModal?: () => void;
   onClose: () => void;
-  onCreated: (proj: ProjectItem) => void;
+  onCreated: (proj: ProjectItem, workspace?: WorkspaceItem) => void;
 }
 
 export function CreateProjectModal({
   isOpen,
   workspaceId,
+  workspaces,
+  onOpenCreateWorkspaceModal,
   onClose,
   onCreated,
 }: CreateProjectModalProps) {
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(workspaceId || "");
+  const [workspacesList, setWorkspacesList] = useState<WorkspaceItem[]>(workspaces || []);
+  const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
   const [name, setName] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
   const [gscPropertyId, setGscPropertyId] = useState("");
@@ -25,6 +33,35 @@ export function CreateProjectModal({
   const [githubBranch, setGithubBranch] = useState("main");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (workspaceId) {
+        setSelectedWorkspaceId(workspaceId);
+      }
+      if (workspaces && workspaces.length > 0) {
+        setWorkspacesList(workspaces);
+        if (!workspaceId) {
+          setSelectedWorkspaceId(workspaces[0].id);
+        }
+      } else {
+        setIsLoadingWorkspaces(true);
+        fetch("/api/v1/workspaces")
+          .then((r) => r.json())
+          .then((d) => {
+            const list = d.workspaces || [];
+            if (list.length > 0) {
+              setWorkspacesList(list);
+              if (!workspaceId) {
+                setSelectedWorkspaceId(list[0].id);
+              }
+            }
+          })
+          .catch(console.error)
+          .finally(() => setIsLoadingWorkspaces(false));
+      }
+    }
+  }, [isOpen, workspaceId, workspaces]);
 
   if (!isOpen) return null;
 
@@ -42,20 +79,17 @@ export function CreateProjectModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!workspaceId) {
-      setError("Active workspace is required");
-      return;
-    }
-
     setError(null);
     setLoading(true);
+
+    const targetWsId = selectedWorkspaceId || workspaceId;
 
     try {
       const res = await fetch("/api/v1/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workspaceId,
+          ...(targetWsId ? { workspaceId: targetWsId } : {}),
           name,
           siteUrl,
           gscPropertyId,
@@ -70,7 +104,7 @@ export function CreateProjectModal({
         throw new Error(data.error || "Failed to create project");
       }
 
-      onCreated(data.project);
+      onCreated(data.project, data.workspace);
       setName("");
       setSiteUrl("");
       setGscPropertyId("");
@@ -112,6 +146,44 @@ export function CreateProjectModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Workspace Selector */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-mono text-slate-300 flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Target Workspace</span>
+              </label>
+              {onOpenCreateWorkspaceModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenCreateWorkspaceModal();
+                  }}
+                  className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono transition-colors"
+                >
+                  + New Workspace
+                </button>
+              )}
+            </div>
+            {workspacesList.length > 0 ? (
+              <select
+                value={selectedWorkspaceId || workspacesList[0]?.id}
+                onChange={(e) => setSelectedWorkspaceId(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:outline-none focus:border-cyan-500 transition-colors"
+              >
+                {workspacesList.map((ws) => (
+                  <option key={ws.id} value={ws.id}>
+                    {ws.name} ({ws.planTier})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="px-3 py-2 rounded-lg bg-slate-950 border border-slate-800/80 text-xs text-slate-400 font-mono flex items-center justify-between">
+                <span>{isLoadingWorkspaces ? "Detecting workspace..." : "Default workspace will be created automatically"}</span>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-mono text-slate-300 mb-1">

@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
+  workspaces?: WorkspaceItem[];
   currentWorkspace?: WorkspaceItem | null;
   currentProject?: ProjectItem | null;
   onSelectWorkspace: (ws: WorkspaceItem) => void;
@@ -21,6 +22,7 @@ interface TopbarProps {
 }
 
 export function Topbar({
+  workspaces,
   currentWorkspace,
   currentProject,
   onSelectWorkspace,
@@ -48,6 +50,7 @@ export function Topbar({
       {/* Switchers */}
       <div className="flex items-center gap-3">
         <WorkspaceSwitcher
+          workspaces={workspaces}
           currentWorkspaceId={currentWorkspace?.id}
           onSelectWorkspace={onSelectWorkspace}
           onOpenCreateModal={onOpenCreateWorkspaceModal}
