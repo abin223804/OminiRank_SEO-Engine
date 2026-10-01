@@ -36,6 +36,7 @@
     "test:observability": "tsx tests/observability_health.test.ts",
     "test:agency": "tsx tests/enterprise_agency.test.ts",
     "test:guard": "tsx scripts/db-migration-guard.ts",
+    "test:browser": "tsx tests/browser_e2e.test.ts",
     "queue:worker": "tsx lib/queue/worker-runner.ts",
     "test:all": "tsx tests/crypto.test.ts && tsx tests/smoke.test.ts && tsx tests/gsc_jwt.test.ts && tsx tests/classifier.test.ts && tsx tests/ai_sanitizer.test.ts && tsx tests/ai_generator.test.ts && tsx tests/sandbox.test.ts && tsx tests/git_deploy.test.ts && tsx tests/billing_quota.test.ts && tsx tests/enterprise_auth_multitenancy.test.ts && tsx tests/stripe_checkout_portal.test.ts && tsx tests/gemini_competitor_engine.test.ts && tsx tests/distributed_queue.test.ts && tsx tests/cms_connectors.test.ts && tsx tests/atlas_vector_search.test.ts && tsx tests/observability_health.test.ts && tsx tests/enterprise_agency.test.ts && tsx tests/phase1_exit.test.ts && tsx tests/phase2_exit.test.ts && tsx tests/phase3_exit.test.ts && tsx tests/phase4_exit.test.ts && tsx tests/phase5_exit.test.ts"
   },
@@ -52,13 +53,13 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "next": "^15.2.0",
+    "prisma": "^6.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sanitize-html": "^2.14.0",
     "stripe": "^22.6.2",
     "tailwind-merge": "^3.0.1",
-    "zod": "^3.24.2",
-    "prisma": "^6.4.1"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
@@ -68,6 +69,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9.20.1",
     "eslint-config-next": "^15.2.0",
+    "playwright": "^1.63.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.3",
