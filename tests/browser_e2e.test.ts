@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import path from "path";
 import fs from "fs";
 
-const SCREENSHOTS_DIR = "/Users/abinschandran/.gemini/antigravity-ide/brain/e653cfb2-63ba-4da2-a1f9-c0b9580e4998/browser_screenshots";
+const SCREENSHOTS_DIR = path.join(process.cwd(), "artifacts", "browser_screenshots");
 
 async function runBrowserE2ETest() {
   console.log("=================================================");

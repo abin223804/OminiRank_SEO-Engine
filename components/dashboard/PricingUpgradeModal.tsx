@@ -43,8 +43,8 @@ const PLANS: PlanDefinition[] = [
     description: "Trial intelligence engine for solo developers & hobby projects.",
     features: [
       "1 Tracked Domain",
-      "15 Striking-Distance Keywords",
-      "3 AI Schema Enrichments / month",
+      "15 SEO Opportunities Identified",
+      "3 Content & Schema Optimizations / mo",
       "Manual Search Console Sync",
       "Community Support",
     ],
@@ -56,8 +56,8 @@ const PLANS: PlanDefinition[] = [
     description: "Continuous rank monitoring and autonomous FAQ generation for growing brands.",
     features: [
       "3 Tracked Domains",
-      "250 Striking-Distance Keywords",
-      "25 AI Schema Enrichments / month",
+      "250 SEO Opportunities Identified",
+      "25 Content & Schema Optimizations / mo",
       "Weekly Executive Email Digest",
       "Google Sitemap Auto-Ping",
     ],
@@ -70,11 +70,11 @@ const PLANS: PlanDefinition[] = [
     description: "High-scale multi-domain automation with automated Git PR deployments.",
     features: [
       "10 Tracked Domains",
-      "2,000 Striking-Distance Keywords",
-      "150 AI Schema Enrichments / month",
+      "2,000 SEO Opportunities Identified",
+      "150 Content & Schema Optimizations / mo",
       "Automated Git PR Branching",
       "Instant Indexing API Publishing",
-      "Syntax Validation Sandbox Safety Net",
+      "Automated Safety Net & Code Verification",
       "Team Collaborators & Multi-Tenancy",
     ],
   },
@@ -86,8 +86,8 @@ const PLANS: PlanDefinition[] = [
     description: "Full white-label fleet capability for digital agencies and enterprises.",
     features: [
       "Unlimited Tracked Domains",
-      "Unlimited Keywords & Rankings",
-      "Unlimited AI Schema Generations",
+      "Unlimited SEO Opportunities & Rankings",
+      "Unlimited Content & Schema Optimizations",
       "Multi-Tenant Client Organizations",
       "Dedicated High-Concurrency Queues",
       "Enterprise SAML & SSO Provisioning",
@@ -186,7 +186,7 @@ export function PricingUpgradeModal({
                 Scale Your Autonomous Search Operations
               </Dialog.Title>
               <Dialog.Description className="text-xs text-slate-400 mt-1 max-w-2xl">
-                Upgrade your subscription tier to stage more striking-distance schema optimizations, add extra tracking domains, and unlock continuous Git deployments.
+                Upgrade your plan to unlock more SEO opportunities identified, stage additional optimizations, and accelerate ranking growth.
               </Dialog.Description>
             </div>
             <Dialog.Close className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/80 transition-colors">

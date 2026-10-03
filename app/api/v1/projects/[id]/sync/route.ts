@@ -45,7 +45,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       data: result,
-      message: `Successfully synchronized ${result.queriesCount} queries (${result.strikingDistanceCount} striking distance targets).`,
+      message: `Successfully synchronized ${result.queriesCount} queries (${result.strikingDistanceCount} SEO opportunities identified).`,
     });
   } catch (error) {
     console.error("POST /api/v1/projects/[id]/sync error:", error);

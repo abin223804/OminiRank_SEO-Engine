@@ -93,13 +93,13 @@ export function StageEnrichmentModal({
               </div>
               <div>
                 <Dialog.Title className="text-base font-bold text-white flex items-center gap-2">
-                  Autonomous E-E-A-T Content Generator
+                  SEO Opportunity Optimizer
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-400">
-                    Phase 3 Active
+                    AI Powered
                   </span>
                 </Dialog.Title>
                 <Dialog.Description className="text-xs text-slate-400 mt-0.5">
-                  Target: <span className="text-cyan-300 font-mono font-semibold">&quot;{targetQuery.query}&quot;</span> (Rank {targetQuery.position.toFixed(1)})
+                  Target Opportunity: <span className="text-cyan-300 font-mono font-semibold">&quot;{targetQuery.query}&quot;</span> (Rank {targetQuery.position.toFixed(1)})
                 </Dialog.Description>
               </div>
             </div>
@@ -115,14 +115,14 @@ export function StageEnrichmentModal({
           <div className="mt-5 space-y-4">
             <div>
               <label className="block text-xs font-mono text-slate-400 mb-2">
-                Select Enrichment Asset Type:
+                Choose Optimization Type:
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { id: "FAQ", label: "FAQ Schema", icon: FileText, desc: "JSON-LD FAQPage" },
-                  { id: "COMPARISON", label: "Comparison", icon: Table, desc: "Matrix Table" },
-                  { id: "CODE_SNIPPET", label: "Code Snippet", icon: Code2, desc: "Production API" },
-                  { id: "META_TAGS", label: "Meta Tags", icon: Tags, desc: "High-CTR SERP" },
+                  { id: "FAQ", label: "FAQ & Schema", icon: FileText, desc: "Rich Search Results" },
+                  { id: "COMPARISON", label: "Comparison Table", icon: Table, desc: "Buyer Decision Guide" },
+                  { id: "CODE_SNIPPET", label: "Code Snippet", icon: Code2, desc: "Developer Authority" },
+                  { id: "META_TAGS", label: "Meta Tags", icon: Tags, desc: "Boost Search CTR" },
                 ].map((item) => {
                   const Icon = item.icon;
                   const isSelected = selectedType === item.id;
@@ -174,12 +174,12 @@ export function StageEnrichmentModal({
                   {isGenerating ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                      <span>Synthesizing E-E-A-T Content with Gemini &amp; Sanitizer...</span>
+                      <span>Generating high-ranking SEO content...</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 text-slate-950" />
-                      <span>Generate &amp; Stage {selectedType} Asset</span>
+                      <span>Generate Optimization for Opportunity</span>
                     </>
                   )}
                 </button>
@@ -192,7 +192,7 @@ export function StageEnrichmentModal({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Staged &amp; XSS-Sanitized in PostgreSQL</span>
+                    <span>Optimized &amp; Verified Safe</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -273,7 +273,7 @@ export function StageEnrichmentModal({
                 {/* Staging Complete Actions */}
                 <div className="pt-2 flex justify-between items-center">
                   <span className="text-xs text-slate-500 font-mono">
-                    Status: <span className="text-cyan-400 font-semibold">STAGED</span> (Ready for Git/CMS deploy)
+                    Status: <span className="text-cyan-400 font-semibold">READY</span> (Ready to deploy to your site)
                   </span>
                   <button
                     type="button"

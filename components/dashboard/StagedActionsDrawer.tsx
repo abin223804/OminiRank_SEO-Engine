@@ -137,9 +137,9 @@ export function StagedActionsDrawer({
           </div>
           <div>
             <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
-              Staged E-E-A-T Enrichment Queue
+              SEO Optimizations Ready for Deployment
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-semibold">
-                {items.length} Actions
+                {items.length} Ready
               </span>
             </h3>
           </div>
@@ -251,7 +251,7 @@ export function StagedActionsDrawer({
                   <div className="flex items-center justify-between text-slate-500 text-[10px]">
                     <span>Created: {new Date(item.createdAt).toLocaleString()}</span>
                     <span className="flex items-center gap-1 text-emerald-400">
-                      <ShieldCheck className="w-3 h-3" /> Sanitized
+                      <ShieldCheck className="w-3 h-3" /> Verified Safe
                     </span>
                   </div>
                   <pre className="text-slate-300 overflow-x-auto max-h-[220px] bg-slate-900/60 p-2.5 rounded">

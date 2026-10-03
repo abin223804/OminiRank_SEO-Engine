@@ -121,7 +121,7 @@ export async function checkWorkspaceQuota(
 
     if (monthlyEnrichments >= quota.maxEnrichmentsPerMonth) {
       throw new QuotaExceededError(
-        `Monthly enrichment quota reached for '${tier}' tier (${monthlyEnrichments}/${quota.maxEnrichmentsPerMonth}). Please upgrade your workspace plan to stage additional autonomous optimizations.`,
+        `Monthly optimization quota reached for '${tier}' tier (${monthlyEnrichments}/${quota.maxEnrichmentsPerMonth}). Please upgrade your workspace plan to stage additional optimizations.`,
         tier,
         quota.maxEnrichmentsPerMonth,
         monthlyEnrichments

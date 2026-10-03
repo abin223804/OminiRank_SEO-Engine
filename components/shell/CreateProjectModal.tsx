@@ -134,7 +134,7 @@ export function CreateProjectModal({
           <div>
             <h3 className="text-base font-bold text-slate-100">Add Tracking Project & Domain</h3>
             <p className="text-xs text-slate-400">
-              Connect a website domain to enable autonomous striking distance monitoring.
+              Connect a website domain to discover high-value SEO opportunities and boost search rankings.
             </p>
           </div>
         </div>

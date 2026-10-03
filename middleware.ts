@@ -3,6 +3,7 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_EXACT_PATHS = new Set([
   "/login",
+  "/free-audit",
   "/auth/callback",
   "/auth/confirm",
   "/favicon.ico",
@@ -12,6 +13,7 @@ const PUBLIC_PATH_PREFIXES = [
   "/_next",
   "/api/v1/billing/webhook",
   "/api/v1/auth",
+  "/api/v1/free-audit",   // lead magnet — no auth required
   "/api/v1/workspaces/invitations",
   "/api/v1/cron",
   "/api/v1/jobs",

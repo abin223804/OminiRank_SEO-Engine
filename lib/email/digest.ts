@@ -453,10 +453,10 @@ function renderDigestHtml(d: ExecutiveDigestData): string {
                 <tr>
                   <td>
                     <div style="font-size: 12px; font-family: monospace; font-weight: 700; text-transform: uppercase; color: #22d3ee; letter-spacing: 0.05em; margin-bottom: 4px;">
-                      High-ROI Striking Distance Radar (Pos 11.0 – 30.0)
+                      SEO Opportunities Identified (Ready for Page 1)
                     </div>
                     <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">
-                      ${d.totalStrikingCount} queries within striking distance of Page 1. Top surging targets:
+                      ${d.totalStrikingCount} high-impact SEO opportunities identified. Top growth targets ready to reach Page 1:
                     </div>
                   </td>
                 </tr>
@@ -471,7 +471,7 @@ function renderDigestHtml(d: ExecutiveDigestData): string {
                   </tr>
                 </thead>
                 <tbody>
-                  ${queriesRows || `<tr><td colspan="4" style="padding: 16px; text-align: center; color: #64748b; font-size: 12px;">No striking queries detected.</td></tr>`}
+                  ${queriesRows || `<tr><td colspan="4" style="padding: 16px; text-align: center; color: #64748b; font-size: 12px;">No SEO opportunities detected.</td></tr>`}
                 </tbody>
               </table>
             </td>
@@ -539,7 +539,7 @@ Total Organic Clicks: ${d.kpis.clicks.current.toLocaleString()} (${d.kpis.clicks
 Average CTR: ${d.kpis.ctr.current.toFixed(1)}% (Prev: ${d.kpis.ctr.previous.toFixed(1)}%)
 Average Position: ${d.kpis.avgPosition.current.toFixed(1)}
 
---- STRIKING DISTANCE RADAR (${d.totalStrikingCount} targets) ---
+--- SEO OPPORTUNITIES IDENTIFIED (${d.totalStrikingCount} targets) ---
 ${d.strikingDistanceQueries
   .map(
     (q) =>

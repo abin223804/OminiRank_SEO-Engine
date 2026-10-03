@@ -22,10 +22,10 @@ interface SidebarProps {
 
 const navItems = [
   {
-    title: "Striking Distance Radar",
+    title: "SEO Opportunities Radar",
     href: "/radar",
     icon: Crosshair,
-    badge: "11–30",
+    badge: "Opportunities",
     badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
   },
   {
@@ -34,10 +34,10 @@ const navItems = [
     icon: Radar,
   },
   {
-    title: "AI Enrichments",
+    title: "Content Optimizations",
     href: "/enrichments",
     icon: Sparkles,
-    badge: "E-E-A-T",
+    badge: "AI Boost",
     badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
   },
   {
@@ -46,7 +46,7 @@ const navItems = [
     icon: GitPullRequest,
   },
   {
-    title: "Sandbox & Audit Logs",
+    title: "Audit & Change History",
     href: "/audit",
     icon: ShieldCheck,
   },

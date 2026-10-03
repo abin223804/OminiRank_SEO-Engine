@@ -67,19 +67,19 @@ export function DeploymentAuditFeed({
       case "BUILD_PASSED":
         return {
           icon: ShieldCheck,
-          label: "Sandbox Pass",
+          label: "Verified Safe",
           style: "bg-emerald-950/70 border-emerald-500/40 text-emerald-400",
         };
       case "BUILD_FAILED":
         return {
           icon: AlertTriangle,
-          label: "Sandbox Failed",
+          label: "Review Needed",
           style: "bg-rose-950/70 border-rose-500/40 text-rose-400",
         };
       case "COMMIT_SUCCESS":
         return {
           icon: GitPullRequest,
-          label: "PR Deployed",
+          label: "Live / PR Created",
           style: "bg-cyan-950/70 border-cyan-500/40 text-cyan-400",
         };
       case "ROLLBACK_TRIGGERED":
@@ -118,9 +118,9 @@ export function DeploymentAuditFeed({
           </div>
           <div>
             <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
-              Git Deployment &amp; Sandbox Audit Trail
+              Verified Deployment &amp; Change History
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-400">
-                Phase 4 Verified
+                Verified Safe
               </span>
             </h3>
           </div>

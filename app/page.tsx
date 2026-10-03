@@ -181,7 +181,7 @@ export default function DashboardPage() {
 
       setSyncBanner({
         type: "success",
-        text: `Search Console synchronized! Discovered ${data.data.strikingDistanceCount} striking-distance keywords ready for optimization.`,
+        text: `Search Console synchronized! ${data.data.strikingDistanceCount} SEO opportunities identified and ready for ranking growth.`,
       });
 
       await loadProjectData(currentProject.id);
@@ -264,14 +264,14 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-3">
-                Autonomous Search Radar
+                SEO Growth Radar
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  GSC Ingestion Active
+                  Search Console Synced
                 </span>
               </h1>
               <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-                Continuous ranking crawler tracking Page 2 & 3 striking-distance queries (positions 11.0–30.0).
+                Continuous search intelligence detecting high-impact SEO opportunities identified and ready to reach Page 1.
               </p>
             </div>
 
@@ -313,7 +313,7 @@ export default function DashboardPage() {
                     <RefreshCw
                       className={`w-3.5 h-3.5 text-slate-950 ${isSyncing ? "animate-spin" : ""}`}
                     />
-                    <span>{isSyncing ? "Syncing..." : "Sync Radar"}</span>
+                    <span>{isSyncing ? "Scanning..." : "Scan for Opportunities"}</span>
                   </button>
                 </>
               )}
@@ -332,7 +332,7 @@ export default function DashboardPage() {
             <div className="p-5 rounded-xl border border-cyan-500/30 bg-gradient-to-b from-cyan-950/20 to-slate-900/40 relative overflow-hidden group shadow-glow-cyan">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono uppercase text-cyan-400 tracking-wider">
-                  Striking Distance
+                  SEO Opportunities Identified
                 </span>
                 <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
                   <Crosshair className="w-4 h-4" />
@@ -343,7 +343,7 @@ export default function DashboardPage() {
                   {currentProject ? queries.length : 0}
                 </div>
                 <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
-                  <span className="text-cyan-400 font-semibold">Pos 11.0 – 30.0</span> • High ROI Targets
+                  <span className="text-cyan-400 font-semibold">Page 1 Growth Potential</span> • Ready to Boost
                 </div>
               </div>
             </div>
@@ -420,7 +420,7 @@ export default function DashboardPage() {
                   No Active Workspace
                 </h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Create or select a workspace to organize your tracking domains, team members, and autonomous search audits.
+                  Create or select a workspace to organize your domains, team members, and search performance tracking.
                 </p>
               </div>
               <div className="pt-2 flex justify-center gap-3">
@@ -442,7 +442,7 @@ export default function DashboardPage() {
                   No Tracking Domain Selected
                 </h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  To view striking-distance search performance and trigger autonomous updates, select or register a domain.
+                  To view high-impact SEO opportunities identified across your site and boost your search rankings, select or register a domain.
                 </p>
               </div>
               <div className="pt-2 flex justify-center gap-3">
@@ -461,11 +461,11 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h4 className="text-base font-bold text-slate-100">
-                  Ready for Initial GSC Ingestion
+                  Ready to Discover SEO Opportunities
                 </h4>
                 <p className="text-xs text-slate-400 mt-1">
                   Property <span className="text-cyan-400 font-mono">{currentProject.gscPropertyId}</span> is connected.
-                  Run your first sync to isolate striking-distance queries.
+                  Run your first sync to reveal all SEO opportunities identified for your domain.
                 </p>
               </div>
               <div className="pt-2 flex justify-center gap-3">
@@ -477,7 +477,7 @@ export default function DashboardPage() {
                   <RefreshCw
                     className={`w-3.5 h-3.5 text-slate-950 ${isSyncing ? "animate-spin" : ""}`}
                   />
-                  <span>Run Initial GSC Sync</span>
+                  <span>Identify SEO Opportunities</span>
                 </button>
               </div>
             </div>

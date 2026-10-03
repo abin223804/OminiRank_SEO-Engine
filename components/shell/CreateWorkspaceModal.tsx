@@ -81,7 +81,7 @@ export function CreateWorkspaceModal({
           <div>
             <h3 className="text-base font-bold text-slate-100">Create New Workspace</h3>
             <p className="text-xs text-slate-400">
-              Isolate domains, team members, and autonomous search quotas.
+              Organize your domains, team members, and SEO tracking in one workspace.
             </p>
           </div>
         </div>

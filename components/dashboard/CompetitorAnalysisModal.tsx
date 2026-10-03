@@ -127,13 +127,13 @@ export function CompetitorAnalysisModal({
               </div>
               <div>
                 <Dialog.Title className="text-base font-bold text-white flex items-center gap-2">
-                  <span>Competitor Intelligence & Grounding</span>
+                  <span>Competitor Intelligence &amp; Insights</span>
                   <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-purple-950/60 border border-purple-500/30 text-purple-400">
                     {projectName || "Current Domain"}
                   </span>
                 </Dialog.Title>
                 <Dialog.Description className="text-xs text-slate-400 mt-0.5">
-                  Reverse-engineer top-ranking SERP competitors to ground autonomous Gemini 2.5 content optimizations.
+                  Analyze top-ranking competitors to discover proven content structures and high-traffic keyword opportunities.
                 </Dialog.Description>
               </div>
             </div>
@@ -230,7 +230,7 @@ export function CompetitorAnalysisModal({
                   No Competitors Analyzed Yet
                 </div>
                 <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-                  Add competitor URLs ranking on Page 1 for your striking-distance keywords. Their heading structures and keyword density will ground Gemini 2.5 generations.
+                  Add competitor URLs ranking on Page 1 for your target keywords to extract their best headings, keyword strategies, and content gaps.
                 </p>
               </div>
             ) : (

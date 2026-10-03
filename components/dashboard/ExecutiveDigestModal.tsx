@@ -128,7 +128,7 @@ export function ExecutiveDigestModal({
                   </span>
                 </Dialog.Title>
                 <Dialog.Description className="text-xs text-slate-400">
-                  Automated weekly Search Console & striking-distance surge report for stakeholders.
+                  Automated weekly report summarizing top SEO opportunities identified, ranking gains, and search growth for stakeholders.
                 </Dialog.Description>
               </div>
             </div>
@@ -236,8 +236,8 @@ export function ExecutiveDigestModal({
                 {/* Top Surging Striking Distance Targets */}
                 <div>
                   <div className="text-[11px] font-mono text-cyan-400 mb-1 flex items-center justify-between">
-                    <span>Surging Striking Queries ({previewData.data.totalStrikingCount} Total)</span>
-                    <span className="text-[10px] text-slate-500">Pos 11.0 – 30.0</span>
+                    <span>Top SEO Opportunities Identified ({previewData.data.totalStrikingCount} Total)</span>
+                    <span className="text-[10px] text-slate-500">Ready for Page 1 Surge</span>
                   </div>
                   <div className="space-y-1 font-mono text-[11px]">
                     {previewData.data.strikingDistanceQueries.slice(0, 3).map((q: any, i: number) => (

@@ -217,14 +217,14 @@ export function AnalyticsTrendChart({
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
             <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-              Performance Trend Intelligence
+              Search Performance Trends
               <span className="text-[11px] font-mono font-normal text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded border border-slate-700/50">
-                GSC Historical Curves
+                Verified Google Data
               </span>
             </h3>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Tracking impressions, organic clicks, CTR, and search rank trajectory across crawl cycles.
+            Track how your clicks, impressions, CTR, and keyword rankings grow over time.
           </p>
         </div>
 

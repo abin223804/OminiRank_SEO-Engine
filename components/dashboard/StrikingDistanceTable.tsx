@@ -65,13 +65,13 @@ export function StrikingDistanceTable({
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              Striking Distance Opportunities
+              SEO Opportunities Identified
               <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-400">
-                {filteredQueries.length} Targets
+                {filteredQueries.length} Opportunities
               </span>
             </h3>
             <p className="text-[11px] text-slate-400">
-              Ranked positions 11.0–30.0 with immediate potential to surge to Page 1 via autonomous E-E-A-T updates.
+              Keywords ranking on the verge of Page 1 (positions 11–30) with proven traffic potential, ready to boost with smart optimizations.
             </p>
           </div>
         </div>
@@ -88,7 +88,7 @@ export function StrikingDistanceTable({
                   : "text-slate-400 hover:text-slate-200"
               )}
             >
-              All (11-30)
+              All Opportunities (11-30)
             </button>
             <button
               onClick={() => setFilterTier("PAGE_2_NEAR")}
@@ -99,7 +99,7 @@ export function StrikingDistanceTable({
                   : "text-slate-400 hover:text-slate-200"
               )}
             >
-              Near Page 1 (11-15)
+              Closest to Page 1 (11-15)
             </button>
             <button
               onClick={() => setFilterTier("HIGH_VOLUME")}
@@ -110,7 +110,7 @@ export function StrikingDistanceTable({
                   : "text-slate-400 hover:text-slate-200"
               )}
             >
-              High Vol (≥500)
+              High Traffic (≥500)
             </button>
           </div>
 
@@ -140,7 +140,7 @@ export function StrikingDistanceTable({
               <th className="py-3 px-4 text-right">CTR</th>
               <th className="py-3 px-4 text-right">Current Position</th>
               <th className="py-3 px-4 text-right">Rank Delta</th>
-              <th className="py-3 px-4 text-center">Autonomous Action</th>
+              <th className="py-3 px-4 text-center">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/50 text-xs font-mono">
@@ -158,7 +158,7 @@ export function StrikingDistanceTable({
                 <td colSpan={8} className="py-12 text-center text-slate-400">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Crosshair className="w-6 h-6 text-slate-600" />
-                    <span>No striking-distance queries found matching your filters.</span>
+                    <span>No SEO opportunities found matching your filters.</span>
                   </div>
                 </td>
               </tr>
@@ -250,11 +250,11 @@ export function StrikingDistanceTable({
                   <td className="py-3.5 px-4 text-center">
                     <button
                       onClick={() => onStageEnrichment?.(item)}
-                      title="Generate schema & E-E-A-T enrichment (Phase 3)"
+                      title="Generate high-ranking content and schema to boost this opportunity"
                       className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-cyan-500/10 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 transition-colors inline-flex items-center gap-1.5"
                     >
                       <Sparkles className="w-3 h-3 text-cyan-400" />
-                      <span>Stage AI</span>
+                      <span>Boost Ranking</span>
                     </button>
                   </td>
                 </tr>

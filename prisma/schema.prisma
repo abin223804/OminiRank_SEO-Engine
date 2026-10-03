@@ -253,3 +253,12 @@ model WebhookSubscription {
 
   @@index([workspaceId, isActive])
 }
+
+model FreeAuditLead {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
+  siteUrl     String?
+  capturedAt  DateTime @default(now())
+  convertedAt DateTime?
+  planSignedUp String? // "professional" | "agency" etc.
+}
